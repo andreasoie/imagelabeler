@@ -70,6 +70,13 @@ def update_image_label(path: str, image_label: ImageLabelUpdate):
     updated_image_label = app.state.db.get(Query().path == path)
     return updated_image_label
 
+
+@app.get("/images/")    
+def get_number_of_images():
+    if app.state.db is None:
+        raise HTTPException(status_code=500, detail="Database not initialized")
+    return len(app.state.db)
+
 # get image by path
 @app.get("/images/{path}")
 def get_image(path: str, size: Optional[int] = None):
