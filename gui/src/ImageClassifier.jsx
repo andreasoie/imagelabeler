@@ -1,14 +1,19 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Button, Typography } from "antd";
 import "antd/dist/antd.css";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { updateImageLabel, loadImage } from "./Api";
-import { Divider } from "antd";
-import { Row, Col } from "antd";
+import {
+  Typography,
+  Button,
+  Row,
+  Col,
+  Divider,
+  Space,
+  Image,
+  Progress,
+} from "antd";
+import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 
-const MAX_IMAGE = 3551;
-
-const ImageClassifier = ({ images }) => {
+const ImageClassifier = ({ maxImages, images }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentLabel, setCurrentLabel] = useState("");
   const [imageURL, setImageURL] = useState(null);
@@ -52,10 +57,6 @@ const ImageClassifier = ({ images }) => {
     setCurrentIndex(currentIndex + 1);
   };
 
-  // useEffect(() => {
-  //   setCurrentLabel(images[currentIndex].label);
-  // }, [currentIndex, images]);
-
   const buttonLabels = [
     "wooden boat",
     "kayak",
@@ -64,15 +65,6 @@ const ImageClassifier = ({ images }) => {
     "white boat",
     "ferry",
   ];
-
-  const labelToColor = {
-    "wooden boat": "#873800",
-    kayak: "#d4b106",
-    ship: "#91caff",
-    speedboat: "#fa8c16",
-    "white boat": "#f0f5ff",
-    ferry: "#8c8c8c",
-  };
 
   const valueToPreview = {
     "wooden boat": "wooden",
@@ -83,13 +75,6 @@ const ImageClassifier = ({ images }) => {
     ferry: "ferry",
   };
 
-  const buttonStyle = {
-    flex: 1,
-    margin: 4,
-    // backgroundColor: "#4a4a4a",
-    // borderColor: "#4a4a4a",
-  };
-
   return (
     <div
       style={{
@@ -98,119 +83,100 @@ const ImageClassifier = ({ images }) => {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        color: "white",
+        color: "#F0F0F0",
       }}
     >
-      <Typography.Title
-        style={{ textAlign: "center", color: "white", marginTop: 10 }}
-      >
-        Image Classification
+      <Typography.Title style={{ color: "white" }}>
+        ImageLabeler
       </Typography.Title>
-      <Typography.Title
-        level={4}
-        style={{ textAlign: "center", color: "white" }}
-      >
-        Progress: {currentIndex + 1}/{MAX_IMAGE}
-        <br />
-        Percentage: {(((currentIndex + 1) / MAX_IMAGE) * 100).toFixed(2)}%
-      </Typography.Title>
-      <Typography.Title
-        level={4}
-        style={{ textAlign: "center", color: "white" }}
-      >
-        {currentLabel || "---"}
-      </Typography.Title>
-      <div>
+      <Space direction="vertical" size="middle" style={{ maxWidth: "100%" }}>
+        <div style={{ width: "100%", textAlign: "center" }}>
+          <Typography.Text style={{ color: "white", textAlign: "center" }}>
+            {`${currentIndex + 1} / ${maxImages} (${(
+              ((currentIndex + 1) / maxImages) *
+              100
+            ).toFixed(2)}%)`}
+          </Typography.Text>
+          <Progress
+            percent={(((currentIndex + 1) / maxImages) * 100).toFixed(2)}
+            showInfo={false}
+            style={{ maxWidth: "100%" }}
+          />
+          <Typography.Title level={4} style={{ color: "white" }}>
+            {currentLabel || "---"}
+          </Typography.Title>
+        </div>
         {imageURL ? (
-          <img
-            id="myImage"
+          <Image
             src={imageURL}
             alt="Loaded from API"
-            style={{
-              maxWidth: "100%",
-              border: "1px solid white",
-              maxHeight: "512px",
-              objectFit: "contain",
-            }}
+            width="100%"
+            height={512}
+            style={{ objectFit: "contain", border: "1px solid white" }}
           />
         ) : (
-          <p>Loading image...</p>
+          <Typography.Text>Loading image...</Typography.Text>
         )}
-      </div>
-      <div
-        style={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-          marginTop: 10,
-        }}
-      >
-        <Row gutter={[8, 8]}>
+        <Row gutter={[16, 16]}>
           {buttonLabels.map((label, index) => (
-            <Col span={8}>
+            <Col span={8} key={index}>
               <Button
                 key={index}
-                // type={currentLabel === label ? "primary" : "default"}
                 onClick={() => handleSubmit(label)}
                 style={{
-                  flex: 1,
-                  margin: 1,
-                  width: "60%",
-                  backgroundColor: labelToColor[label],
-                  borderColor: labelToColor[label],
+                  width: "100%",
+                  backgroundColor:
+                    currentLabel === label ? "#1890ff" : "#4a4a4a",
+                  borderColor: currentLabel === label ? "#1890ff" : "#4a4a4a",
                 }}
                 size="large"
+                block
               >
                 {valueToPreview[label]}
               </Button>
             </Col>
           ))}
         </Row>
-      </div>
-      <Divider />
-
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: 300,
-        }}
-      >
-        <Button
-          type="default"
-          onClick={() => currentIndex > 0 && setCurrentIndex(currentIndex - 1)}
-          disabled={currentIndex === 0}
-          style={{ ...buttonStyle, marginLeft: 10 }}
-          icon={<LeftOutlined />}
-          size="small"
-        >
-          Back
-        </Button>
-        <Button
-          type="default"
-          onClick={() =>
-            currentIndex < images.length - 1 &&
-            setCurrentIndex(currentIndex + 1)
-          }
-          disabled={currentIndex === images.length - 1}
-          style={{ ...buttonStyle, marginRight: 10 }}
-          size="small"
-        >
-          Forward
-          <RightOutlined />
-        </Button>
-      </div>
-      <div>
+        <Divider />
+        <Row>
+          <Col span={12}>
+            <Button
+              onClick={() =>
+                currentIndex > 0 && setCurrentIndex(currentIndex - 1)
+              }
+              disabled={currentIndex === 0}
+              icon={<LeftOutlined />}
+              size="large"
+              block
+            >
+              Back
+            </Button>
+          </Col>
+          <Col span={12}>
+            <Button
+              onClick={() =>
+                currentIndex < images.length - 1 &&
+                setCurrentIndex(currentIndex + 1)
+              }
+              disabled={currentIndex === images.length - 1}
+              size="large"
+              block
+            >
+              Forward
+              <RightOutlined />
+            </Button>
+          </Col>
+        </Row>
         <Button
           type="dashed"
           onClick={() => goToFirst()}
-          style={{ ...buttonStyle, marginTop: 10 }}
-          size="small"
+          style={{ marginTop: "1rem" }}
+          size="large"
+          block
         >
-          GTF
+          Find unlabeled
         </Button>
-      </div>
+      </Space>
     </div>
   );
 };

@@ -1,37 +1,53 @@
 import React, { useState, useEffect } from "react";
 import ImageClassifier from "./ImageClassifier.jsx";
-import { getImages } from "./Api.jsx";
+import { getImages, getMaxImages } from "./Api.jsx";
+import { Layout, Spin, Typography } from "antd";
+
+const { Content } = Layout;
 
 const App = () => {
+  const [maxImages, setMaxImages] = useState(0);
   const [images, setImages] = useState(null);
 
   useEffect(() => {
     const fetchAllImages = async () => {
-      const data = await getImages(0, 5000);
-      setImages(data);
+      const maxImg = await getMaxImages();
+      const imagesUrls = await getImages(0, maxImg);
+      setMaxImages(maxImg);
+      setImages(imagesUrls);
     };
 
     fetchAllImages();
   }, []);
 
   return (
-    <div
-      style={{
-        width: "100%",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#2f2f2f",
-      }}
-    >
-      {images !== null ? (
-        <ImageClassifier images={images} />
-      ) : (
-        <div>
-          <h1>Labeling Finished</h1>
-        </div>
-      )}
-    </div>
+    <Layout style={{ minHeight: "100vh", backgroundColor: "#1E1E2C" }}>
+      <Content
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: "1rem",
+        }}
+      >
+        {images !== null ? (
+          <ImageClassifier maxImages={maxImages} images={images} />
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <Spin size="large" />
+            <Typography.Text style={{ color: "white", marginTop: "1rem" }}>
+              Loading images...
+            </Typography.Text>
+          </div>
+        )}
+      </Content>
+    </Layout>
   );
 };
 

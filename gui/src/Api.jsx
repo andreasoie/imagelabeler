@@ -18,3 +18,8 @@ export const loadImage = async (path, size) => {
   const response = await api.get(`/images/${path}`, { params: { size } });
   return response.request.responseURL;
 };
+
+export const getMaxImages = async () => {
+  const response = await api.get("/images/");
+  return response.data;
+};
