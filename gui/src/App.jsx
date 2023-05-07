@@ -21,7 +21,7 @@ const App = () => {
   }, []);
 
   return (
-    <Layout style={{ minHeight: "100vh", backgroundColor: "#1E1E2C" }}>
+    <Layout style={{ minHeight: "100vh", backgroundColor: "#2C3333" }}>
       <Content
         style={{
           display: "flex",
@@ -41,7 +41,7 @@ const App = () => {
             }}
           >
             <Spin size="large" />
-            <Typography.Text style={{ color: "white", marginTop: "1rem" }}>
+            <Typography.Text style={{ color: "#CBE4DE", marginTop: "1rem" }}>
               Loading images...
             </Typography.Text>
           </div>

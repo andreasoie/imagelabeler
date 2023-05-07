@@ -11,7 +11,11 @@ import {
   Image,
   Progress,
 } from "antd";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import {
+  LeftOutlined,
+  RightOutlined,
+  FastForwardOutlined,
+} from "@ant-design/icons";
 
 const ImageClassifier = ({ maxImages, images }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -66,15 +70,6 @@ const ImageClassifier = ({ maxImages, images }) => {
     "ferry",
   ];
 
-  const valueToPreview = {
-    "wooden boat": "wooden",
-    kayak: "kayak",
-    ship: "ship",
-    speedboat: "speed",
-    "white boat": "white",
-    ferry: "ferry",
-  };
-
   return (
     <div
       style={{
@@ -86,9 +81,18 @@ const ImageClassifier = ({ maxImages, images }) => {
         color: "#F0F0F0",
       }}
     >
-      <Typography.Title style={{ color: "white" }}>
+      <Typography.Title
+        style={{
+          color: "#CBE4DE",
+          fontWeight: "bold",
+          fontSize: "48px",
+          letterSpacing: "1px",
+          marginBottom: "16px",
+        }}
+      >
         ImageLabeler
       </Typography.Title>
+
       <Space direction="vertical" size="middle" style={{ maxWidth: "100%" }}>
         <div style={{ width: "100%", textAlign: "center" }}>
           <Typography.Text style={{ color: "white", textAlign: "center" }}>
@@ -102,7 +106,16 @@ const ImageClassifier = ({ maxImages, images }) => {
             showInfo={false}
             style={{ maxWidth: "100%" }}
           />
-          <Typography.Title level={4} style={{ color: "white" }}>
+          <Typography.Title
+            level={4}
+            style={{
+              color: "#CBE4DE",
+              fontWeight: "600",
+              letterSpacing: "0.5px",
+              fontSize: "24px",
+              marginBottom: "16px",
+            }}
+          >
             {currentLabel || "---"}
           </Typography.Title>
         </div>
@@ -112,34 +125,70 @@ const ImageClassifier = ({ maxImages, images }) => {
             alt="Loaded from API"
             width="100%"
             height={512}
-            style={{ objectFit: "contain", border: "1px solid white" }}
+            style={{
+              objectFit: "contain",
+              position: "relative",
+              "::after": {
+                content: `'${currentLabel || "---"}'`,
+                position: "absolute",
+                top: "16px",
+                left: "16px",
+                color: "#CBE4DE",
+                fontWeight: "600",
+                letterSpacing: "0.5px",
+                fontSize: "24px",
+                backgroundColor: "rgba(46, 79, 79, 0.8)",
+                borderRadius: "4px",
+                padding: "4px 8px",
+              },
+            }}
           />
         ) : (
           <Typography.Text>Loading image...</Typography.Text>
         )}
-        <Row gutter={[16, 16]}>
-          {buttonLabels.map((label, index) => (
+        <Row gutter={[16, 16]} style={{ marginBottom: "16px" }}>
+          {buttonLabels.slice(0, 3).map((label, index) => (
             <Col span={8} key={index}>
               <Button
                 key={index}
                 onClick={() => handleSubmit(label)}
                 style={{
                   width: "100%",
-                  backgroundColor:
-                    currentLabel === label ? "#1890ff" : "#4a4a4a",
-                  borderColor: currentLabel === label ? "#1890ff" : "#4a4a4a",
+                  borderColor: currentLabel === label ? "#0E8388" : "#2E4F4F",
+                  background: currentLabel === label ? "#CBE4DE" : "#2E4F4F",
+                  color: currentLabel === label ? "#2E4F4F" : "#CBE4DE",
                 }}
                 size="large"
                 block
               >
-                {valueToPreview[label]}
+                {label}
+              </Button>
+            </Col>
+          ))}
+        </Row>
+        <Row gutter={[16, 16]}>
+          {buttonLabels.slice(3).map((label, index) => (
+            <Col span={8} key={index}>
+              <Button
+                key={index}
+                onClick={() => handleSubmit(label)}
+                style={{
+                  width: "100%",
+                  borderColor: currentLabel === label ? "#0E8388" : "#2E4F4F",
+                  background: currentLabel === label ? "#CBE4DE" : "#2E4F4F",
+                  color: currentLabel === label ? "#2E4F4F" : "#CBE4DE",
+                }}
+                size="large"
+                block
+              >
+                {label}
               </Button>
             </Col>
           ))}
         </Row>
         <Divider />
         <Row>
-          <Col span={12}>
+          <Col span={8}>
             <Button
               onClick={() =>
                 currentIndex > 0 && setCurrentIndex(currentIndex - 1)
@@ -152,7 +201,17 @@ const ImageClassifier = ({ maxImages, images }) => {
               Back
             </Button>
           </Col>
-          <Col span={12}>
+          <Col span={8}>
+            <Button
+              onClick={() => goToFirst()}
+              icon={<FastForwardOutlined />}
+              size="large"
+              block
+            >
+              GTF
+            </Button>
+          </Col>
+          <Col span={8}>
             <Button
               onClick={() =>
                 currentIndex < images.length - 1 &&
@@ -167,15 +226,6 @@ const ImageClassifier = ({ maxImages, images }) => {
             </Button>
           </Col>
         </Row>
-        <Button
-          type="dashed"
-          onClick={() => goToFirst()}
-          style={{ marginTop: "1rem" }}
-          size="large"
-          block
-        >
-          Find unlabeled
-        </Button>
       </Space>
     </div>
   );
