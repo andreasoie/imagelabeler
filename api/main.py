@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 from tinydb import Query, TinyDB
+from tqdm import tqdm
 
 app = FastAPI()
 app.add_middleware(
@@ -40,7 +41,7 @@ class ImageLabelRequest(ImageLabelBase):
 def startup():
     if app.state.imgdir == "":
         raise SystemExit("Please set the image directory path in 'app.state.imgdir'")
-    if os.path.exists("database.json"):
+    if is_file_initialized("database.json"):
         app.state.db = TinyDB("database.json")
     else:
         app.state.db = create_database("database.json", app.state.imgdir)
@@ -92,12 +93,16 @@ def get_image(path: str, size: Optional[int] = None):
     
 # ---
 
+def is_file_initialized(fname: str) -> bool:
+    return os.path.exists(fname) and os.path.getsize(fname) > 0
+
 def is_valid_image(path: str) -> bool:
     return path.endswith(("png", "jpg", "jpeg"))
 
 def create_database(dbname: str, imgdir: str):
     db = TinyDB(dbname)
-    for path in [os.path.join(imgdir, imgpath) for imgpath in os.listdir(imgdir) if is_valid_image(imgpath)]:
+    valid_images = [os.path.join(imgdir, imgpath) for imgpath in os.listdir(imgdir) if is_valid_image(imgpath)]
+    for path in tqdm(valid_images, desc="Indexing db", colour="green", leave=False):
         # Check if path is already in the database
         existing_entry = db.search(Query().path == path)
         # If the path is not in the database, insert a new entry with an empty label
