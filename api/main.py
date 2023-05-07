@@ -1,4 +1,5 @@
 import os
+import sys
 from io import BytesIO
 from typing import Dict, List, Optional
 
@@ -9,15 +10,6 @@ from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 from tinydb import Query, TinyDB
 
-origins = [
-    "http://127.0.0.1:8000",
-    "http://127.0.0.1:8001",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:3001",
-]
-
-
-
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -26,6 +18,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+app.state.imgdir = "" # REPLACE ME
 
 class ImageLabelBase(BaseModel):
     label: Optional[str] = None
@@ -34,17 +27,23 @@ class ImageLabelCreate(ImageLabelBase):
     path: str
 
 class ImageLabelUpdate(ImageLabelBase):
-    pass
+    path: str
 
 class ImageLabelInDB(ImageLabelBase):
+    path: str
+    
+class ImageLabelRequest(ImageLabelBase):
     path: str
     
 
 @app.on_event("startup")
 def startup():
-    app.state.db = TinyDB('database.json')
-    def read_path(path: str) -> str: return os.path.join("images", path)
-    app.state.loadimg = read_path
+    if app.state.imgdir == "":
+        raise SystemExit("Please set the image directory path in 'app.state.imgdir'")
+    if os.path.exists("database.json"):
+        app.state.db = TinyDB("database.json")
+    else:
+        app.state.db = create_database("database.json", app.state.imgdir)
 
 @app.on_event("shutdown")
 def shutdown():
@@ -55,42 +54,32 @@ def read_image_labels(skip: int = 0, limit: int = 10):
     image_labels = app.state.db.all()
     return image_labels[skip: skip + limit]
 
-@app.get("/labels/{path}", response_model=ImageLabelInDB)
-def read_image_label(path: str):
-    image_label = app.state.db.get(Query().path == path)
-    if image_label is None:
-        raise HTTPException(status_code=404, detail="Image not found")
-    return image_label
-
-@app.put("/labels/{path}", response_model=ImageLabelInDB)
-def update_image_label(path: str, image_label: ImageLabelUpdate):
+@app.put("/labels/", response_model=ImageLabelInDB)
+def update_image_label(image_label_request: ImageLabelRequest):
+    path = image_label_request.path
     if not app.state.db.contains(Query().path == path):
         raise HTTPException(status_code=404, detail="Image not found")
-    app.state.db.update(image_label.dict(), Query().path == path)
+    app.state.db.update(image_label_request.dict(), Query().path == path)
     updated_image_label = app.state.db.get(Query().path == path)
     return updated_image_label
 
-
-@app.get("/images/")    
+@app.get("/images/max")    
 def get_number_of_images():
     if app.state.db is None:
         raise HTTPException(status_code=500, detail="Database not initialized")
     return len(app.state.db)
 
-# get image by path
-@app.get("/images/{path}")
+@app.get("/images/")
 def get_image(path: str, size: Optional[int] = None):
     image_label = app.state.db.get(Query().path == path)
     if image_label is None:
         raise HTTPException(status_code=404, detail="Image not found")
     
-    relative_path = app.state.loadimg(image_label['path'])
-    
-    if not os.path.exists(relative_path):
+    if not os.path.exists(image_label['path']):
         raise HTTPException(status_code=404, detail="Image file not found on server")
     
     if size is not None:
-        img = cv2.imread(relative_path)
+        img = cv2.imread(image_label['path'])
         img = cv2.resize(img, (size, size), interpolation=cv2.INTER_AREA)
         is_success, buffer = cv2.imencode(".png", img)
         if is_success:
@@ -98,4 +87,20 @@ def get_image(path: str, size: Optional[int] = None):
         else:
             raise HTTPException(status_code=500, detail="Failed to encode the resized image")
     else:
-        return FileResponse(relative_path, media_type="image/png")
+        return FileResponse(image_label['path'], media_type="image/png")
+    
+    
+# ---
+
+def is_valid_image(path: str) -> bool:
+    return path.endswith(("png", "jpg", "jpeg"))
+
+def create_database(dbname: str, imgdir: str):
+    db = TinyDB(dbname)
+    for path in [os.path.join(imgdir, imgpath) for imgpath in os.listdir(imgdir) if is_valid_image(imgpath)]:
+        # Check if path is already in the database
+        existing_entry = db.search(Query().path == path)
+        # If the path is not in the database, insert a new entry with an empty label
+        if not existing_entry:
+            db.insert({"path": path, "label": ""})
+    return db
