@@ -13,7 +13,6 @@ const App = () => {
     const fetchAllImages = async () => {
       const maxImg = await getMaxImages();
       const imagesUrls = await getImages(0, maxImg);
-      console.log("imagesUrls", imagesUrls);
       setMaxImages(maxImg);
       setImages(imagesUrls);
     };

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import "antd/dist/antd.css";
-import { updateImageLabel, loadImage } from "./Api";
+import { updateImageLabel, loadImage, exportDatabase } from "./Api";
 import {
   Typography,
   Button,
@@ -15,6 +15,7 @@ import {
   LeftOutlined,
   RightOutlined,
   FastForwardOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 
 const ImageClassifier = ({ maxImages, images }) => {
@@ -61,6 +62,20 @@ const ImageClassifier = ({ maxImages, images }) => {
     setCurrentIndex(currentIndex + 1);
   };
 
+  const handleExportDatabase = async () => {
+    const data = await exportDatabase();
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "database.json");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const buttonLabels = [
     "wooden boat",
     "kayak",
@@ -95,17 +110,35 @@ const ImageClassifier = ({ maxImages, images }) => {
 
       <Space direction="vertical" size="middle" style={{ maxWidth: "100%" }}>
         <div style={{ width: "100%", textAlign: "center" }}>
-          <Typography.Text style={{ color: "white", textAlign: "center" }}>
-            {`${currentIndex + 1} / ${maxImages} (${(
-              ((currentIndex + 1) / maxImages) *
-              100
-            ).toFixed(2)}%)`}
-          </Typography.Text>
-          <Progress
-            percent={(((currentIndex + 1) / maxImages) * 100).toFixed(2)}
-            showInfo={false}
-            style={{ maxWidth: "100%" }}
-          />
+          <Space
+            direction="vertical"
+            style={{ width: "100%", textAlign: "center" }}
+          >
+            <div>
+              <Typography.Text style={{ color: "white", fontSize: "18px" }}>
+                Labled:{" "}
+                {`${currentIndex + 1} / ${maxImages} (${(
+                  ((currentIndex + 1) / maxImages) *
+                  100
+                ).toFixed(2)}%)`}
+              </Typography.Text>
+              <Button
+                onClick={handleExportDatabase}
+                icon={<DownloadOutlined />}
+                size="middle"
+                style={{
+                  marginLeft: "1rem",
+                  backgroundColor: "#2C3333",
+                  color: "#CBE4DE",
+                }}
+              />
+            </div>
+            <Progress
+              percent={(((currentIndex + 1) / maxImages) * 100).toFixed(2)}
+              showInfo={false}
+              style={{ maxWidth: "100%" }}
+            />
+          </Space>
           <Typography.Title
             level={4}
             style={{

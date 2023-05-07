@@ -23,3 +23,8 @@ export const getMaxImages = async () => {
   const response = await api.get("/images/max");
   return response.data;
 };
+
+export const exportDatabase = async () => {
+  const response = await api.get("/export-database/");
+  return response.data;
+};
