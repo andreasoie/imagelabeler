@@ -5,7 +5,7 @@ from typing import Dict, List, Optional
 
 import cv2
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 from tinydb import Query, TinyDB
@@ -49,6 +49,11 @@ def startup():
 @app.on_event("shutdown")
 def shutdown():
     app.state.db.close()
+    
+@app.get("/export-database/")
+def export_database():
+    return JSONResponse(app.state.db.all(), headers={"Content-Disposition": "attachment; filename=database.json"})
+
 
 @app.get("/labels/", response_model=List[ImageLabelInDB])
 def read_image_labels(skip: int = 0, limit: int = 10):
