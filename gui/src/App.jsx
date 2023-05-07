@@ -13,6 +13,7 @@ const App = () => {
     const fetchAllImages = async () => {
       const maxImg = await getMaxImages();
       const imagesUrls = await getImages(0, maxImg);
+      console.log("imagesUrls", imagesUrls);
       setMaxImages(maxImg);
       setImages(imagesUrls);
     };
@@ -31,7 +32,13 @@ const App = () => {
         }}
       >
         {images !== null ? (
-          <ImageClassifier maxImages={maxImages} images={images} />
+          images.length > 0 ? (
+            <ImageClassifier maxImages={maxImages} images={images} />
+          ) : (
+            <Typography.Text style={{ color: "#CBE4DE" }}>
+              No images found ...
+            </Typography.Text>
+          )
         ) : (
           <div
             style={{

@@ -157,9 +157,13 @@ const ImageClassifier = ({ maxImages, images }) => {
                   borderColor: currentLabel === label ? "#0E8388" : "#2E4F4F",
                   background: currentLabel === label ? "#CBE4DE" : "#2E4F4F",
                   color: currentLabel === label ? "#2E4F4F" : "#CBE4DE",
+                  borderRadius: "6px",
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                 }}
                 size="large"
                 block
+                type={currentLabel === label ? "primary" : "default"}
+                ghost={currentLabel !== label}
               >
                 {label}
               </Button>
@@ -177,9 +181,13 @@ const ImageClassifier = ({ maxImages, images }) => {
                   borderColor: currentLabel === label ? "#0E8388" : "#2E4F4F",
                   background: currentLabel === label ? "#CBE4DE" : "#2E4F4F",
                   color: currentLabel === label ? "#2E4F4F" : "#CBE4DE",
+                  borderRadius: "6px",
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                 }}
                 size="large"
                 block
+                type={currentLabel === label ? "primary" : "default"}
+                ghost={currentLabel !== label}
               >
                 {label}
               </Button>
